@@ -1,4 +1,4 @@
 fastapi==0.97.0
 uvicorn==0.22.0
-
-
+# async with mongoDB
+motor==3.1.2
