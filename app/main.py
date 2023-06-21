@@ -1,11 +1,13 @@
 import uvicorn
 from fastapi import FastAPI, Request
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
 from config import Settings
+from routers.blog_post_router import router
 
 app = FastAPI()
 settings = Settings()
+app.include_router(router)
 
 # MongoDB connection, get data from .env
 username = settings.mongo_username
@@ -13,6 +15,11 @@ password = settings.mongo_password
 
 connection_string = f"mongodb+srv://{username}:{password}@cluster0.rthfj.mongodb.net/?retryWrites=true&w=majority"
 client = AsyncIOMotorClient(connection_string)
+db = client["blogging_platform"]
+
+
+async def get_database() -> AsyncIOMotorDatabase:
+    return db
 
 
 @app.get("/")
