@@ -50,3 +50,18 @@ async def create_post(post: BlogPost, db: AsyncIOMotorDatabase = Depends(get_dat
 
     result = await db.posts.insert_one(data)
     return {'message': 'Post created', 'post_id': str(result.inserted_id)}
+
+
+@router.put('/update_post')
+async def update_post(post_id: str, post_update: BlogPost, db: AsyncIOMotorDatabase = Depends(get_database)):
+    """ using put request, update a post """
+
+    # add comment
+    updated_post = await db.posts.find_one_and_update(
+        {'_id': ObjectId(post_id)},
+        {'$set': post_update.dict(exclude_unset=True)},
+        return_document=True
+    )
+
+    updated_post['_id'] = str(updated_post['_id'])
+    return updated_post
