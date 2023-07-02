@@ -28,6 +28,22 @@ async def get_post(post_id: str, db: AsyncIOMotorDatabase = Depends(get_database
     return post
 
 
+@router.delete('/posts/{post_id}')
+async def delete_post(post_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
+    """ using post_id delete a post """
+
+    try:
+        result = await db.posts.delete_one({'_id': ObjectId(post_id)})
+    except:
+        return HTTPException(status_code=400, detail='Incorrect post_id')
+
+    # check if delete was successful
+    if result.deleted_count == 0:
+        return HTTPException(status_code=400, detail='Post not found')
+
+    return {'message': 'Post deleted'}
+
+
 @router.get('/posts')
 async def get_posts(db: AsyncIOMotorDatabase = Depends(get_database)):
     """ use get_database to connect to mongo """
@@ -56,7 +72,8 @@ async def create_post(post: BlogPost, db: AsyncIOMotorDatabase = Depends(get_dat
 async def update_post(post_id: str, post_update: BlogPost, db: AsyncIOMotorDatabase = Depends(get_database)):
     """ using put request, update a post """
 
-    # add comment
+    # set: update these fields
+    # exclude_unset: dont update missing fields
     updated_post = await db.posts.find_one_and_update(
         {'_id': ObjectId(post_id)},
         {'$set': post_update.dict(exclude_unset=True)},
