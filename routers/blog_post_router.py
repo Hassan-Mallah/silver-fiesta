@@ -2,7 +2,7 @@
 
 from bson import ObjectId
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.database import get_database
@@ -42,6 +42,13 @@ async def delete_post(post_id: str, db: AsyncIOMotorDatabase = Depends(get_datab
         return HTTPException(status_code=400, detail='Post not found')
 
     return {'message': 'Post deleted'}
+
+
+@router.get('/posts_page')
+async def get_posts_page(page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=100),
+                         db: AsyncIOMotorDatabase = Depends(get_database)):
+    """ get posts using pagination """
+    return {'message':  'coming soon'}
 
 
 @router.get('/posts')
