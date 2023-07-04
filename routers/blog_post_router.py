@@ -4,6 +4,7 @@ from bson import ObjectId
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from pymongo.cursor import Cursor
 
 from app.database import get_database
 from models.blog_post_model import BlogPost
@@ -48,8 +49,26 @@ async def delete_post(post_id: str, db: AsyncIOMotorDatabase = Depends(get_datab
 async def get_posts_page(page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=100),
                          db: AsyncIOMotorDatabase = Depends(get_database)):
     """ get posts using pagination """
-    return {'message':  'coming soon'}
 
+    # Calculate the number of records to skip based on page number
+    skip = (page - 1) * limit
+
+    # get the page records
+    cursor: Cursor = db.posts.find().skip(skip).limit(limit)
+    posts = [BlogPost(**{**post, "_id": str(post["_id"])}) async for post in cursor]
+
+    # get the total count of records
+    total_count = await db.posts.count_documents({})
+
+    # Create a response payload with pagination metadata
+    response = {
+        "page": page,
+        "limit": limit,
+        "total_count": total_count,
+        "data": posts,
+    }
+
+    return response
 
 @router.get('/posts')
 async def get_posts(db: AsyncIOMotorDatabase = Depends(get_database)):
